@@ -1,1 +1,3 @@
-# distilled_q_stereospike
+# Quantization for Stereospike
+## 1. Hardware Requirements
+- 
