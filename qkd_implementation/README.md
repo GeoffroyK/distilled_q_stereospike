@@ -2,7 +2,12 @@
 
 This repository contains code and experiments for **Quantization-Aware Knowledge Distillation (QKD)** using a ResNet-18 backbone on the CIFAR-10 dataset. The goal is to distill knowledge from a full-precision teacher network into a quantized student network.
 
+![Reference Paper](https://arxiv.org/abs/1911.12491)
+
 ## Overview
+
+![Overall Architecture](./images/qkd_arch.png)
+
 
 - **Teacher Model**: Full-precision ResNet-18
 - **Student Model**: Quantized ResNet-18 (varied bit-widths)
