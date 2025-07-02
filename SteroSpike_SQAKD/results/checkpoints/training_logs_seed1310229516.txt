@@ -1,0 +1,234 @@
+
+
+##############
+# SETTINGS #
+##############
+    RNG
+    ------------------------------
+    seed = 1310229516
+    
+    MODEL
+    ------------------------------
+    fromZero_feedforward_multiscale_tempo_Matt_NoskipAll_sepConv_SpikeFlowNetLike_v2
+
+    DATA
+    ------------------------------
+    nfpdm = 1
+    N_train = 2
+    training_set = 3108
+    test_set = 199
+    learned_metric = LIN
+    data_augmentation = Compose(
+    ToTensor()
+    RandomHorizontalFlip(p=0.5)
+    RandomTimeMirror(p=0.5)
+)
+    
+    LOSS
+    ------------------------------
+    spike penalization = False
+    penalization factor = 0.0
+
+    TRAINING PROCEDURE
+    ------------------------------
+    batchsize = 1
+    lr = 0.0002
+    lr_schedule = [8, 42, 60]
+    lr_gamma = 0.5
+    wd = 0.0
+    spike penalization = False
+    penalization factor = 0.0
+
+    
+
+##########################
+# NETWORK ARCHITECTURE #
+##########################
+
+fromZero_feedforward_multiscale_tempo_Matt_NoskipAll_sepConv_SpikeFlowNetLike_v2(
+  (surrogate_fct): ATan(alpha=2.0, spiking=True)
+  (bottom): Sequential(
+    (0): Conv2d(4, 4, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=4, bias=False)
+    (1): Conv2d(4, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (conv1): Sequential(
+    (0): Conv2d(32, 32, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), groups=32, bias=False)
+    (1): Conv2d(32, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (conv2): Sequential(
+    (0): Conv2d(64, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), groups=64, bias=False)
+    (1): Conv2d(64, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (conv3): Sequential(
+    (0): Conv2d(128, 128, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), groups=128, bias=False)
+    (1): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (conv4): Sequential(
+    (0): Conv2d(256, 256, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), groups=256, bias=False)
+    (1): Conv2d(256, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (bottleneck): Sequential(
+    (0): SeparableSEWResBlock_Noskip(
+      (conv1): Sequential(
+        (0): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=512, bias=False)
+        (1): Conv2d(512, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): MultiplyBy()
+      )
+      (sn1): ParametricLIFNode(
+        v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+        (surrogate_function): ATan(alpha=2.0, spiking=True)
+      )
+      (conv2): Sequential(
+        (0): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=512, bias=False)
+        (1): Conv2d(512, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): MultiplyBy()
+      )
+      (sn2): ParametricLIFNode(
+        v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+        (surrogate_function): ATan(alpha=2.0, spiking=True)
+      )
+    )
+    (1): SeparableSEWResBlock_Noskip(
+      (conv1): Sequential(
+        (0): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=512, bias=False)
+        (1): Conv2d(512, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): MultiplyBy()
+      )
+      (sn1): ParametricLIFNode(
+        v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+        (surrogate_function): ATan(alpha=2.0, spiking=True)
+      )
+      (conv2): Sequential(
+        (0): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=512, bias=False)
+        (1): Conv2d(512, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): MultiplyBy()
+      )
+      (sn2): ParametricLIFNode(
+        v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+        (surrogate_function): ATan(alpha=2.0, spiking=True)
+      )
+    )
+  )
+  (deconv4): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(39, 50), mode='nearest')
+        (1): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), groups=512, bias=False)
+        (2): Conv2d(512, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      )
+    )
+    (1): MultiplyBy()
+    (2): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (deconv3): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(71, 93), mode='nearest')
+        (1): Conv2d(256, 256, kernel_size=(7, 7), stride=(1, 1), groups=256, bias=False)
+        (2): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      )
+    )
+    (1): MultiplyBy()
+    (2): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (deconv2): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(136, 179), mode='nearest')
+        (1): Conv2d(128, 128, kernel_size=(7, 7), stride=(1, 1), groups=128, bias=False)
+        (2): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      )
+    )
+    (1): MultiplyBy()
+    (2): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (deconv1): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(64, 64, kernel_size=(7, 7), stride=(1, 1), groups=64, bias=False)
+        (2): Conv2d(64, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      )
+    )
+    (1): MultiplyBy()
+    (2): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (predict_depth4): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(256, 256, kernel_size=(7, 7), stride=(1, 1), groups=256)
+        (2): Conv2d(256, 1, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+    (1): MultiplyBy()
+  )
+  (predict_depth3): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(128, 128, kernel_size=(7, 7), stride=(1, 1), groups=128)
+        (2): Conv2d(128, 1, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+    (1): MultiplyBy()
+  )
+  (predict_depth2): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(64, 64, kernel_size=(7, 7), stride=(1, 1), groups=64)
+        (2): Conv2d(64, 1, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+    (1): MultiplyBy()
+  )
+  (predict_depth1): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(32, 32, kernel_size=(7, 7), stride=(1, 1), groups=32)
+        (2): Conv2d(32, 1, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+    (1): MultiplyBy()
+  )
+)
+
