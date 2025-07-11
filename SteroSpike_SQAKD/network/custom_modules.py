@@ -395,7 +395,7 @@ class QConv_DW(nn.Conv2d):
 
     
 class QConv_PW(nn.Conv2d):
-    def __init__(self, in_channels, out_channels, kernel_size, args, stride=1, padding=0, dilation=1, groups=1, bias=True):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True):
         super(QConv_PW, self).__init__(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
         self.quan_weight = args.QWeightFlag
         self.quan_act = args.QActFlag
