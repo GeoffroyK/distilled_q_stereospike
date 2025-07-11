@@ -397,25 +397,27 @@ class QConv_DW(nn.Conv2d):
 class QConv_PW(nn.Conv2d):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True):
         super(QConv_PW, self).__init__(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-        self.quan_weight = args.QWeightFlag
-        self.quan_act = args.QActFlag
-        self.baseline = args.baseline
+        self.quan_weight = True #args.QWeightFlag
+        self.quan_act = True #args.QActFlag
+        self.baseline = False #args.baseline
         self.STE_discretizer = STE_discretizer.apply
         self.EWGS_discretizer = EWGS_discretizer.apply
         self.layer_name = None # for save layer_name, can be removed
 
         if self.quan_weight:
-            self.weight_levels = args.weight_levels
+            self.weight_levels = 256 #args.weight_levels
             self.uW = nn.Parameter(data = torch.tensor(0).float())
             self.lW = nn.Parameter(data = torch.tensor(0).float())
-            self.register_buffer('bkwd_scaling_factorW', torch.tensor(args.bkwd_scaling_factorW).float())
+            #self.register_buffer('bkwd_scaling_factorW', torch.tensor(args.bkwd_scaling_factorW).float())
+            self.register_buffer('bkwd_scaling_factorW', torch.tensor(0.0).float())
 
 
         if self.quan_act:
-            self.act_levels = args.act_levels
+            self.act_levels = 256 #args.act_levels
             self.uA = nn.Parameter(data = torch.tensor(0).float())
             self.lA = nn.Parameter(data = torch.tensor(0).float())
-            self.register_buffer('bkwd_scaling_factorA', torch.tensor(args.bkwd_scaling_factorA).float())
+            #self.register_buffer('bkwd_scaling_factorA', torch.tensor(args.bkwd_scaling_factorA).float())
+            self.register_buffer('bkwd_scaling_factorA', torch.tensor(0.0).float())
 
             self.uA_t = nn.Parameter(data = torch.tensor(0).float())
             self.lA_t = nn.Parameter(data = torch.tensor(0).float())
