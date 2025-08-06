@@ -1,0 +1,15 @@
+training:
+  batch_size: 1
+  epochs: 100
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  device: cuda
+
+datasets:
+  training_set: /media/geoffroy/T7/Quantization_Stereospike/train_set.pt
+  validation_set: /media/geoffroy/T7/Quantization_Stereospike/val_set.pt
+  test_set: /media/geoffroy/T7/Quantization_Stereospike/test_set.pt
+
+model:
+  checkpoint: /home/geoffroy/Documents/distilled_q_stereospike/SteroSpike_SQAKD/results/checkpoints/stereospike_seed4064822634.pth
+
