@@ -1,0 +1,401 @@
+
+
+##############
+# SETTINGS #
+##############
+    RNG
+    ------------------------------
+    seed = 3354109048
+    
+    MODEL
+    ------------------------------
+    fromZero_feedforward_multiscale_tempo_Matt_sepConv_SpikeFlowNetLike
+
+    DATA
+    ------------------------------
+    nfpdm = 1
+    N_train = 2
+    training_set = 3108
+    test_set = 199
+    learned_metric = LIN
+    data_augmentation = Compose(
+    ToTensor()
+    RandomHorizontalFlip(p=0.5)
+    RandomTimeMirror(p=0.5)
+)
+    
+    LOSS
+    ------------------------------
+    spike penalization = False
+    penalization factor = 0.0
+
+    TRAINING PROCEDURE
+    ------------------------------
+    batchsize = 1
+    lr = 0.0002
+    lr_schedule = [8, 42, 60]
+    lr_gamma = 0.5
+    wd = 0.0
+    spike penalization = False
+    penalization factor = 0.0
+
+    
+
+##########################
+# NETWORK ARCHITECTURE #
+##########################
+
+fromZero_feedforward_multiscale_tempo_Matt_sepConv_SpikeFlowNetLike(
+  (surrogate_fct): ATan(alpha=2.0, spiking=True)
+  (bottom): Sequential(
+    (0): Conv2d(4, 4, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=4, bias=False)
+    (1): Conv2d(4, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (conv1): Sequential(
+    (0): Conv2d(32, 32, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), groups=32, bias=False)
+    (1): Conv2d(32, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (conv2): Sequential(
+    (0): Conv2d(64, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), groups=64, bias=False)
+    (1): Conv2d(64, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (conv3): Sequential(
+    (0): Conv2d(128, 128, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), groups=128, bias=False)
+    (1): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (conv4): Sequential(
+    (0): Conv2d(256, 256, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), groups=256, bias=False)
+    (1): Conv2d(256, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (2): MultiplyBy()
+    (3): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (bottleneck): Sequential(
+    (0): SeparableSEWResBlock(
+      (conv1): Sequential(
+        (0): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=512, bias=False)
+        (1): Conv2d(512, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): MultiplyBy()
+      )
+      (sn1): ParametricLIFNode(
+        v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+        (surrogate_function): ATan(alpha=2.0, spiking=True)
+      )
+      (conv2): Sequential(
+        (0): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=512, bias=False)
+        (1): Conv2d(512, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): MultiplyBy()
+      )
+      (sn2): ParametricLIFNode(
+        v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+        (surrogate_function): ATan(alpha=2.0, spiking=True)
+      )
+    )
+    (1): SeparableSEWResBlock(
+      (conv1): Sequential(
+        (0): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=512, bias=False)
+        (1): Conv2d(512, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): MultiplyBy()
+      )
+      (sn1): ParametricLIFNode(
+        v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+        (surrogate_function): ATan(alpha=2.0, spiking=True)
+      )
+      (conv2): Sequential(
+        (0): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=512, bias=False)
+        (1): Conv2d(512, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): MultiplyBy()
+      )
+      (sn2): ParametricLIFNode(
+        v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+        (surrogate_function): ATan(alpha=2.0, spiking=True)
+      )
+    )
+  )
+  (deconv4): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(39, 50), mode='nearest')
+        (1): Conv2d(512, 512, kernel_size=(7, 7), stride=(1, 1), groups=512, bias=False)
+        (2): Conv2d(512, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      )
+    )
+    (1): MultiplyBy()
+    (2): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (deconv3): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(71, 93), mode='nearest')
+        (1): Conv2d(256, 256, kernel_size=(7, 7), stride=(1, 1), groups=256, bias=False)
+        (2): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      )
+    )
+    (1): MultiplyBy()
+    (2): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (deconv2): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(136, 179), mode='nearest')
+        (1): Conv2d(128, 128, kernel_size=(7, 7), stride=(1, 1), groups=128, bias=False)
+        (2): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      )
+    )
+    (1): MultiplyBy()
+    (2): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (deconv1): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(64, 64, kernel_size=(7, 7), stride=(1, 1), groups=64, bias=False)
+        (2): Conv2d(64, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      )
+    )
+    (1): MultiplyBy()
+    (2): ParametricLIFNode(
+      v_threshold=1.0, v_reset=0.0, detach_reset=True, tau=3.0
+      (surrogate_function): ATan(alpha=2.0, spiking=True)
+    )
+  )
+  (predict_depth4): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(256, 256, kernel_size=(7, 7), stride=(1, 1), groups=256)
+        (2): Conv2d(256, 1, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+    (1): MultiplyBy()
+  )
+  (predict_depth3): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(128, 128, kernel_size=(7, 7), stride=(1, 1), groups=128)
+        (2): Conv2d(128, 1, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+    (1): MultiplyBy()
+  )
+  (predict_depth2): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(64, 64, kernel_size=(7, 7), stride=(1, 1), groups=64)
+        (2): Conv2d(64, 1, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+    (1): MultiplyBy()
+  )
+  (predict_depth1): Sequential(
+    (0): SeparableNNConvUpsampling(
+      (up): Sequential(
+        (0): UpsamplingNearest2d(size=(266, 352), mode='nearest')
+        (1): Conv2d(32, 32, kernel_size=(7, 7), stride=(1, 1), groups=32)
+        (2): Conv2d(32, 1, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+    (1): MultiplyBy()
+  )
+  (Ineurons): IFNode(
+    v_threshold=inf, v_reset=0.0, detach_reset=False
+    (surrogate_function): ATan(alpha=2.0, spiking=True)
+  )
+)
+
+Epoch: 0, Training Loss: 2.9036774059021644, Training Mean Depth Error (m): 0.6179342269897461, Training 1PA: 4.035537186506632, Time: 169.91640496253967
+Epoch: 0, Val Loss: 1.9043560141894087, Val Mean Depth Error (m): 0.5481546521186829, Val 1PA: 2.1060444302295322, Time: 4.478357553482056
+Best performances so far: saving model...
+Epoch: 1, Training Loss: 1.4541204376493795, Training Mean Depth Error (m): 0.34843745827674866, Training 1PA: 7.834041920254436, Time: 168.3629298210144
+Epoch: 1, Val Loss: 1.418124006022161, Val Mean Depth Error (m): 0.27338624000549316, Val 1PA: 12.794406210357819, Time: 4.570266485214233
+Best performances so far: saving model...
+Epoch: 2, Training Loss: 1.194367541136889, Training Mean Depth Error (m): 0.26518768072128296, Training 1PA: 11.01534244253215, Time: 167.60913968086243
+Epoch: 2, Val Loss: 1.2938216768916528, Val Mean Depth Error (m): 0.2638726532459259, Val 1PA: 11.311712486660062, Time: 4.560013055801392
+Best performances so far: saving model...
+Epoch: 3, Training Loss: 1.0926283527180034, Training Mean Depth Error (m): 0.2255692481994629, Training 1PA: 13.225207983143388, Time: 167.69069623947144
+Epoch: 3, Val Loss: 1.2678937660389809, Val Mean Depth Error (m): 0.23561617732048035, Val 1PA: 15.104000442591145, Time: 4.517748594284058
+Best performances so far: saving model...
+Epoch: 4, Training Loss: 1.0380611102476698, Training Mean Depth Error (m): 0.20088393986225128, Training 1PA: 14.962649897718983, Time: 168.10775017738342
+Epoch: 4, Val Loss: 1.2302606854606513, Val Mean Depth Error (m): 0.2323560118675232, Val 1PA: 15.975295808447067, Time: 4.655010461807251
+Best performances so far: saving model...
+Epoch: 5, Training Loss: 0.9969124413997971, Training Mean Depth Error (m): 0.1835947483778, Training 1PA: 16.49117831672941, Time: 167.70666790008545
+Epoch: 5, Val Loss: 1.2171958076893983, Val Mean Depth Error (m): 0.2167363315820694, Val 1PA: 16.833284152812094, Time: 4.6210713386535645
+Best performances so far: saving model...
+Epoch: 6, Training Loss: 0.9722261759074958, Training Mean Depth Error (m): 0.1715409904718399, Training 1PA: 17.80084810834594, Time: 168.29973697662354
+Epoch: 6, Val Loss: 1.2141920007652973, Val Mean Depth Error (m): 0.2188159078359604, Val 1PA: 15.870776098577222, Time: 4.558403253555298
+Epoch: 7, Training Loss: 0.9543064276147226, Training Mean Depth Error (m): 0.16292431950569153, Training 1PA: 18.794652051562046, Time: 168.47085690498352
+Epoch: 7, Val Loss: 1.1850255191625663, Val Mean Depth Error (m): 0.1954858899116516, Val 1PA: 20.260016672575293, Time: 4.6299591064453125
+Best performances so far: saving model...
+Epoch: 8, Training Loss: 0.9105745005868423, Training Mean Depth Error (m): 0.14032848179340363, Training 1PA: 22.431961406727094, Time: 168.03541946411133
+Epoch: 8, Val Loss: 1.150587668370961, Val Mean Depth Error (m): 0.18330492079257965, Val 1PA: 22.63803532974205, Time: 4.577582359313965
+Best performances so far: saving model...
+Epoch: 9, Training Loss: 0.9014174793025855, Training Mean Depth Error (m): 0.1352418214082718, Training 1PA: 23.308748631058513, Time: 168.34579157829285
+Epoch: 9, Val Loss: 1.1496604022069192, Val Mean Depth Error (m): 0.18332022428512573, Val 1PA: 22.203572850730552, Time: 4.520796537399292
+Epoch: 10, Training Loss: 0.8930983721461996, Training Mean Depth Error (m): 0.13053648173809052, Training 1PA: 24.192268417685494, Time: 168.31077122688293
+Epoch: 10, Val Loss: 1.137470663492404, Val Mean Depth Error (m): 0.18688344955444336, Val 1PA: 21.357567496036165, Time: 4.612140893936157
+Epoch: 11, Training Loss: 0.8881237221884144, Training Mean Depth Error (m): 0.12725043296813965, Training 1PA: 24.826723111834152, Time: 168.06409406661987
+Epoch: 11, Val Loss: 1.1546942690509048, Val Mean Depth Error (m): 0.18111127614974976, Val 1PA: 23.33295348301605, Time: 4.595972299575806
+Best performances so far: saving model...
+Epoch: 12, Training Loss: 0.8840112892126945, Training Mean Depth Error (m): 0.1255229115486145, Training 1PA: 25.163211170080547, Time: 168.68400835990906
+Epoch: 12, Val Loss: 1.1597871214301143, Val Mean Depth Error (m): 0.19068105518817902, Val 1PA: 19.23570662886653, Time: 4.606311798095703
+Epoch: 13, Training Loss: 0.8791006837169636, Training Mean Depth Error (m): 0.12329626828432083, Training 1PA: 25.793521771713266, Time: 167.6201207637787
+Epoch: 13, Val Loss: 1.1358690806968728, Val Mean Depth Error (m): 0.1841295063495636, Val 1PA: 20.688631965886408, Time: 4.605979681015015
+Epoch: 14, Training Loss: 0.8757359854963295, Training Mean Depth Error (m): 0.12044941633939743, Training 1PA: 26.28799919494484, Time: 167.30629515647888
+Epoch: 14, Val Loss: 1.1388380862959666, Val Mean Depth Error (m): 0.17736543715000153, Val 1PA: 23.528949205000796, Time: 4.503558874130249
+Best performances so far: saving model...
+Epoch: 15, Training Loss: 0.8719872246320183, Training Mean Depth Error (m): 0.11868671327829361, Training 1PA: 26.582952494825328, Time: 166.12511372566223
+Epoch: 15, Val Loss: 1.1441405400558933, Val Mean Depth Error (m): 0.1744198352098465, Val 1PA: 24.631783321275183, Time: 4.564104318618774
+Best performances so far: saving model...
+Epoch: 16, Training Loss: 0.8686304131434077, Training Mean Depth Error (m): 0.11674128472805023, Training 1PA: 27.242541525086228, Time: 166.81346368789673
+Epoch: 16, Val Loss: 1.1309035019059877, Val Mean Depth Error (m): 0.1718766689300537, Val 1PA: 24.233912822589204, Time: 4.54326319694519
+Best performances so far: saving model...
+Epoch: 17, Training Loss: 0.8669947166969111, Training Mean Depth Error (m): 0.11563378572463989, Training 1PA: 27.343921370065964, Time: 166.5158088207245
+Epoch: 17, Val Loss: 1.1307595560898134, Val Mean Depth Error (m): 0.17350633442401886, Val 1PA: 25.09791804617973, Time: 4.51192569732666
+Epoch: 18, Training Loss: 0.8657598954792035, Training Mean Depth Error (m): 0.11469880491495132, Training 1PA: 27.59708792565719, Time: 166.65650868415833
+Epoch: 18, Val Loss: 1.1263027910012096, Val Mean Depth Error (m): 0.17012952268123627, Val 1PA: 24.93342122240881, Time: 4.566929578781128
+Best performances so far: saving model...
+Epoch: 19, Training Loss: 0.8636938830312615, Training Mean Depth Error (m): 0.11319421231746674, Training 1PA: 28.108480383799037, Time: 166.64485931396484
+Epoch: 19, Val Loss: 1.1405783115918913, Val Mean Depth Error (m): 0.17669068276882172, Val 1PA: 23.297600201026878, Time: 4.55464243888855
+Epoch: 20, Training Loss: 0.8616237745571167, Training Mean Depth Error (m): 0.11289141327142715, Training 1PA: 28.010976914810243, Time: 166.71582055091858
+Epoch: 20, Val Loss: 1.1279898199004743, Val Mean Depth Error (m): 0.17019031941890717, Val 1PA: 24.27602215627929, Time: 4.497917652130127
+Epoch: 21, Training Loss: 0.8598915192764852, Training Mean Depth Error (m): 0.11064741015434265, Training 1PA: 28.762596777545593, Time: 166.6248698234558
+Epoch: 21, Val Loss: 1.127670616660286, Val Mean Depth Error (m): 0.17833496630191803, Val 1PA: 22.168272314359196, Time: 4.579709768295288
+Epoch: 22, Training Loss: 0.8588731441085863, Training Mean Depth Error (m): 0.11067064106464386, Training 1PA: 28.571449664146897, Time: 166.8295636177063
+Epoch: 22, Val Loss: 1.1672672656313259, Val Mean Depth Error (m): 0.18191571533679962, Val 1PA: 21.903062765322737, Time: 4.57838249206543
+Epoch: 23, Training Loss: 0.859175139968613, Training Mean Depth Error (m): 0.10932179540395737, Training 1PA: 29.150847240112615, Time: 166.50217580795288
+Epoch: 23, Val Loss: 1.130379474342768, Val Mean Depth Error (m): 0.1707589030265808, Val 1PA: 24.3278050991758, Time: 4.523005247116089
+Epoch: 24, Training Loss: 0.8569629241735165, Training Mean Depth Error (m): 0.10954326391220093, Training 1PA: 28.828280060486136, Time: 166.72825241088867
+Epoch: 24, Val Loss: 1.1406045639934252, Val Mean Depth Error (m): 0.17806926369667053, Val 1PA: 23.020391578051314, Time: 4.560899496078491
+Epoch: 25, Training Loss: 0.8544981192936462, Training Mean Depth Error (m): 0.10743554681539536, Training 1PA: 29.535637280041954, Time: 166.6383774280548
+Epoch: 25, Val Loss: 1.143055408144716, Val Mean Depth Error (m): 0.1794261783361435, Val 1PA: 20.866505195148026, Time: 4.544620752334595
+Epoch: 26, Training Loss: 0.8548908409311351, Training Mean Depth Error (m): 0.10753737390041351, Training 1PA: 29.375656784309538, Time: 166.82423639297485
+Epoch: 26, Val Loss: 1.1427352057030453, Val Mean Depth Error (m): 0.1910155713558197, Val 1PA: 18.732845304000318, Time: 4.559618949890137
+Epoch: 27, Training Loss: 0.8527870596394883, Training Mean Depth Error (m): 0.10632003098726273, Training 1PA: 29.65452579093409, Time: 166.9926552772522
+Epoch: 27, Val Loss: 1.1538887413302858, Val Mean Depth Error (m): 0.18280798196792603, Val 1PA: 21.253000791348406, Time: 4.5930774211883545
+Epoch: 28, Training Loss: 0.8539752229530378, Training Mean Depth Error (m): 0.10706416517496109, Training 1PA: 29.465289864607605, Time: 169.34017872810364
+Epoch: 28, Val Loss: 1.136983399115615, Val Mean Depth Error (m): 0.18095551431179047, Val 1PA: 21.25091744427705, Time: 4.614293813705444
+Epoch: 29, Training Loss: 0.8530000869467605, Training Mean Depth Error (m): 0.10669906437397003, Training 1PA: 29.53209727427214, Time: 169.38006019592285
+Epoch: 29, Val Loss: 1.1373904131764743, Val Mean Depth Error (m): 0.17125816643238068, Val 1PA: 24.622091111825338, Time: 4.6263587474823
+Epoch: 30, Training Loss: 0.8513591982510559, Training Mean Depth Error (m): 0.10505465418100357, Training 1PA: 30.142431139485716, Time: 169.38164591789246
+Epoch: 30, Val Loss: 1.1205793535290052, Val Mean Depth Error (m): 0.16558000445365906, Val 1PA: 26.062008334164645, Time: 4.652136325836182
+Best performances so far: saving model...
+Epoch: 31, Training Loss: 0.8524485966106793, Training Mean Depth Error (m): 0.10561897605657578, Training 1PA: 30.108159828446855, Time: 168.0555760860443
+Epoch: 31, Val Loss: 1.146808979798801, Val Mean Depth Error (m): 0.1787203699350357, Val 1PA: 22.11687034697988, Time: 4.532274961471558
+Epoch: 32, Training Loss: 0.8525780218640197, Training Mean Depth Error (m): 0.10457903891801834, Training 1PA: 30.1960562896391, Time: 167.87461948394775
+Epoch: 32, Val Loss: 1.1339643396923889, Val Mean Depth Error (m): 0.16912543773651123, Val 1PA: 25.375549412851957, Time: 4.5641021728515625
+Epoch: 33, Training Loss: 0.8525207923531072, Training Mean Depth Error (m): 0.10427948832511902, Training 1PA: 30.23371170041184, Time: 168.39573335647583
+Epoch: 33, Val Loss: 1.135589096414384, Val Mean Depth Error (m): 0.17359387874603271, Val 1PA: 24.315795736696252, Time: 4.537644386291504
+Epoch: 34, Training Loss: 0.8521581915719015, Training Mean Depth Error (m): 0.10511301457881927, Training 1PA: 29.96939730038207, Time: 168.58784294128418
+Epoch: 34, Val Loss: 1.1305286491935576, Val Mean Depth Error (m): 0.16936641931533813, Val 1PA: 24.461306219723955, Time: 4.592633485794067
+Epoch: 35, Training Loss: 0.8526906554648315, Training Mean Depth Error (m): 0.10393070429563522, Training 1PA: 30.30547572148813, Time: 167.9759259223938
+Epoch: 35, Val Loss: 1.1369191042741937, Val Mean Depth Error (m): 0.1735566407442093, Val 1PA: 23.455021159732762, Time: 4.626580238342285
+Epoch: 36, Training Loss: 0.8531943817396421, Training Mean Depth Error (m): 0.10414663702249527, Training 1PA: 30.136359828204263, Time: 168.4492483139038
+Epoch: 36, Val Loss: 1.1421413086167531, Val Mean Depth Error (m): 0.17348712682724, Val 1PA: 22.82187159936033, Time: 4.5223541259765625
+Epoch: 37, Training Loss: 0.8508328463081534, Training Mean Depth Error (m): 0.10277053713798523, Training 1PA: 30.714601241867207, Time: 168.30491995811462
+Epoch: 37, Val Loss: 1.1379948339270587, Val Mean Depth Error (m): 0.1699790507555008, Val 1PA: 24.893194422050936, Time: 4.588894844055176
+Epoch: 38, Training Loss: 0.8511128381297395, Training Mean Depth Error (m): 0.10218919813632965, Training 1PA: 30.722586627440716, Time: 167.76351928710938
+Epoch: 38, Val Loss: 1.1340928305333584, Val Mean Depth Error (m): 0.17517894506454468, Val 1PA: 21.587065446316895, Time: 4.591662883758545
+Epoch: 39, Training Loss: 0.850344294881115, Training Mean Depth Error (m): 0.10251570492982864, Training 1PA: 30.513408447362895, Time: 168.6619200706482
+Epoch: 39, Val Loss: 1.1448274997610544, Val Mean Depth Error (m): 0.17822259664535522, Val 1PA: 21.688855113695613, Time: 4.580133676528931
+Epoch: 40, Training Loss: 0.8514712270603371, Training Mean Depth Error (m): 0.10226942598819733, Training 1PA: 30.739618033324124, Time: 168.4164354801178
+Epoch: 40, Val Loss: 1.1356598357459409, Val Mean Depth Error (m): 0.16914969682693481, Val 1PA: 25.301724223036263, Time: 4.587637662887573
+Epoch: 41, Training Loss: 0.8503406180147959, Training Mean Depth Error (m): 0.10230609029531479, Training 1PA: 30.79043205928158, Time: 168.0376374721527
+Epoch: 41, Val Loss: 1.126898606817926, Val Mean Depth Error (m): 0.1704390048980713, Val 1PA: 23.50303473784097, Time: 4.628338098526001
+Epoch: 42, Training Loss: 0.840001739532791, Training Mean Depth Error (m): 0.09512073546648026, Training 1PA: 33.154453404314886, Time: 169.02315020561218
+Epoch: 42, Val Loss: 1.133695621885846, Val Mean Depth Error (m): 0.16486433148384094, Val 1PA: 25.777671534811432, Time: 4.493568658828735
+Best performances so far: saving model...
+Epoch: 43, Training Loss: 0.839453002277335, Training Mean Depth Error (m): 0.09462755918502808, Training 1PA: 33.32152031314112, Time: 167.47011709213257
+Epoch: 43, Val Loss: 1.1264605707858675, Val Mean Depth Error (m): 0.16330625116825104, Val 1PA: 26.105008233132676, Time: 4.558235168457031
+Best performances so far: saving model...
+Epoch: 44, Training Loss: 0.8389669811614385, Training Mean Depth Error (m): 0.09414246678352356, Training 1PA: 33.63818355873131, Time: 167.37916350364685
+Epoch: 44, Val Loss: 1.138949567049592, Val Mean Depth Error (m): 0.16857558488845825, Val 1PA: 25.376389164421425, Time: 4.588990926742554
+Epoch: 45, Training Loss: 0.8391400064261417, Training Mean Depth Error (m): 0.09383924305438995, Training 1PA: 33.57163942976348, Time: 168.1995074748993
+Epoch: 45, Val Loss: 1.1317295836443877, Val Mean Depth Error (m): 0.1659725457429886, Val 1PA: 25.451014059871884, Time: 4.59966516494751
+Epoch: 46, Training Loss: 0.8394175990936532, Training Mean Depth Error (m): 0.09401159733533859, Training 1PA: 33.557074242768905, Time: 167.1785535812378
+Epoch: 46, Val Loss: 1.1441465927727859, Val Mean Depth Error (m): 0.17621150612831116, Val 1PA: 22.331274693934763, Time: 4.629034757614136
+Epoch: 47, Training Loss: 0.8381053674366791, Training Mean Depth Error (m): 0.09356677532196045, Training 1PA: 33.66118974341235, Time: 167.5666356086731
+Epoch: 47, Val Loss: 1.1395575928328625, Val Mean Depth Error (m): 0.163788840174675, Val 1PA: 26.290968135373678, Time: 4.577007293701172
+Epoch: 48, Training Loss: 0.8387897395681077, Training Mean Depth Error (m): 0.09348203241825104, Training 1PA: 33.709046605164176, Time: 166.794264793396
+Epoch: 48, Val Loss: 1.1267594096049591, Val Mean Depth Error (m): 0.1612381637096405, Val 1PA: 26.90440711364075, Time: 4.545312881469727
+Best performances so far: saving model...
+Epoch: 49, Training Loss: 0.8390332425403932, Training Mean Depth Error (m): 0.09382356703281403, Training 1PA: 33.467933743655145, Time: 166.4935803413391
+Epoch: 49, Val Loss: 1.1404133091619866, Val Mean Depth Error (m): 0.16652517020702362, Val 1PA: 25.30520827925984, Time: 4.493521213531494
+Epoch: 50, Training Loss: 0.8385557289711143, Training Mean Depth Error (m): 0.0931406244635582, Training 1PA: 33.7551130463718, Time: 166.19429922103882
+Epoch: 50, Val Loss: 1.1344553277121117, Val Mean Depth Error (m): 0.1641465723514557, Val 1PA: 25.298323553411205, Time: 4.499750137329102
+Epoch: 51, Training Loss: 0.8385459590928588, Training Mean Depth Error (m): 0.09366258233785629, Training 1PA: 33.50222841806547, Time: 165.98580479621887
+Epoch: 51, Val Loss: 1.140859667979293, Val Mean Depth Error (m): 0.1742279827594757, Val 1PA: 22.573080853601198, Time: 4.4901158809661865
+Epoch: 52, Training Loss: 0.8393436511606936, Training Mean Depth Error (m): 0.09369112551212311, Training 1PA: 33.55278259519598, Time: 166.09437465667725
+Epoch: 52, Val Loss: 1.1398688914188788, Val Mean Depth Error (m): 0.16327284276485443, Val 1PA: 26.076412545376687, Time: 4.510074853897095
+Epoch: 53, Training Loss: 0.838368414039394, Training Mean Depth Error (m): 0.09370974451303482, Training 1PA: 33.42262054655696, Time: 166.06807017326355
+Epoch: 53, Val Loss: 1.1446937858758859, Val Mean Depth Error (m): 0.1649313122034073, Val 1PA: 26.092861854850348, Time: 4.531653881072998
+Epoch: 54, Training Loss: 0.8384843709443527, Training Mean Depth Error (m): 0.09316935390233994, Training 1PA: 33.71107026723668, Time: 165.8101930618286
+Epoch: 54, Val Loss: 1.1366422284188582, Val Mean Depth Error (m): 0.16293217241764069, Val 1PA: 26.6718589181277, Time: 4.48845911026001
+Epoch: 55, Training Loss: 0.8387320030149806, Training Mean Depth Error (m): 0.09338132292032242, Training 1PA: 33.551706182872316, Time: 165.9061985015869
+Epoch: 55, Val Loss: 1.1494344305153468, Val Mean Depth Error (m): 0.16379860043525696, Val 1PA: 26.679841327906853, Time: 4.5330915451049805
+Epoch: 56, Training Loss: 0.8386188519392235, Training Mean Depth Error (m): 0.09317006915807724, Training 1PA: 33.73358820971375, Time: 165.82533740997314
+Epoch: 56, Val Loss: 1.14064837520446, Val Mean Depth Error (m): 0.17506536841392517, Val 1PA: 21.84817123053661, Time: 4.479742050170898
+Epoch: 57, Training Loss: 0.83783178097608, Training Mean Depth Error (m): 0.09296578168869019, Training 1PA: 33.59873627565389, Time: 165.5731701850891
+Epoch: 57, Val Loss: 1.1327040902334242, Val Mean Depth Error (m): 0.16323643922805786, Val 1PA: 26.278849492720024, Time: 4.466524362564087
+Epoch: 58, Training Loss: 0.8383656578327852, Training Mean Depth Error (m): 0.09266188740730286, Training 1PA: 33.82978554685604, Time: 166.11307168006897
+Epoch: 58, Val Loss: 1.1402367101841835, Val Mean Depth Error (m): 0.16480253636837006, Val 1PA: 25.71035857176661, Time: 4.483057975769043
+Epoch: 59, Training Loss: 0.8373625230911923, Training Mean Depth Error (m): 0.09307155758142471, Training 1PA: 33.72937349010465, Time: 166.05139756202698
+Epoch: 59, Val Loss: 1.1277880306219934, Val Mean Depth Error (m): 0.16288486123085022, Val 1PA: 26.016849249451603, Time: 4.4823057651519775
+Epoch: 60, Training Loss: 0.8330149130279647, Training Mean Depth Error (m): 0.08945301920175552, Training 1PA: 35.15539592086425, Time: 166.00707507133484
+Epoch: 60, Val Loss: 1.1310508916126423, Val Mean Depth Error (m): 0.16140714287757874, Val 1PA: 26.909948204030943, Time: 4.524298667907715
+Epoch: 61, Training Loss: 0.8323188227921379, Training Mean Depth Error (m): 0.08881957828998566, Training 1PA: 35.546208495223844, Time: 167.1195969581604
+Epoch: 61, Val Loss: 1.130248809280108, Val Mean Depth Error (m): 0.16247431933879852, Val 1PA: 26.481155324820897, Time: 4.546589612960815
+Epoch: 62, Training Loss: 0.8327011306371007, Training Mean Depth Error (m): 0.08891447633504868, Training 1PA: 35.560997036624904, Time: 167.30824184417725
+Epoch: 62, Val Loss: 1.1340074362467283, Val Mean Depth Error (m): 0.1620623916387558, Val 1PA: 26.529246733416265, Time: 4.534833192825317
+Epoch: 63, Training Loss: 0.8314735630630219, Training Mean Depth Error (m): 0.0888715609908104, Training 1PA: 35.53938475009557, Time: 167.40138840675354
+Epoch: 63, Val Loss: 1.1315978603746424, Val Mean Depth Error (m): 0.16851818561553955, Val 1PA: 24.396051983138424, Time: 4.511632680892944
+Epoch: 64, Training Loss: 0.8320498803349996, Training Mean Depth Error (m): 0.08888519555330276, Training 1PA: 35.44897713927382, Time: 166.8331744670868
+Epoch: 64, Val Loss: 1.1376643827812156, Val Mean Depth Error (m): 0.16780205070972443, Val 1PA: 24.37393895944758, Time: 4.394272565841675
+Epoch: 65, Training Loss: 0.8317374102627448, Training Mean Depth Error (m): 0.08894399553537369, Training 1PA: 35.45072411535789, Time: 165.5372040271759
+Epoch: 65, Val Loss: 1.136704754889311, Val Mean Depth Error (m): 0.16113536059856415, Val 1PA: 26.716843741623002, Time: 4.482300758361816
+Best performances so far: saving model...
+Epoch: 66, Training Loss: 0.8321478837187686, Training Mean Depth Error (m): 0.08909459412097931, Training 1PA: 35.423496638831026, Time: 166.92657780647278
+Epoch: 66, Val Loss: 1.1405001267715915, Val Mean Depth Error (m): 0.16333849728107452, Val 1PA: 26.152999736555856, Time: 4.422343969345093
+Epoch: 67, Training Loss: 0.8317415990328543, Training Mean Depth Error (m): 0.08845333755016327, Training 1PA: 35.62315074844403, Time: 166.10352563858032
+Epoch: 67, Val Loss: 1.1334440998695603, Val Mean Depth Error (m): 0.16612452268600464, Val 1PA: 25.058014997884857, Time: 4.550945520401001
+Epoch: 68, Training Loss: 0.8317253017651836, Training Mean Depth Error (m): 0.08866799622774124, Training 1PA: 35.54854809163927, Time: 165.82490348815918
+Epoch: 68, Val Loss: 1.1482185655502817, Val Mean Depth Error (m): 0.16386529803276062, Val 1PA: 27.00908124147348, Time: 4.538289308547974
+Epoch: 69, Training Loss: 0.8314769679975326, Training Mean Depth Error (m): 0.08870326727628708, Training 1PA: 35.53270372913304, Time: 166.9977285861969
+Epoch: 69, Val Loss: 1.137114795907658, Val Mean Depth Error (m): 0.16278451681137085, Val 1PA: 26.503773999573596, Time: 4.54448390007019
+
+
+##################
+# FIRING RATES #
+##################
