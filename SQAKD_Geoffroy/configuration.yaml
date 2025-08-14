@@ -1,15 +1,24 @@
 training:
   batch_size: 1
   epochs: 100
-  learning_rate: 0.001
+  learning_rate: 0.0003
   weight_decay: 0.0001
   device: cuda
+  seed: 42
 
 datasets:
-  training_set: /media/geoffroy/T7/Quantization_Stereospike/train_set.pt
-  validation_set: /media/geoffroy/T7/Quantization_Stereospike/val_set.pt
-  test_set: /media/geoffroy/T7/Quantization_Stereospike/test_set.pt
+  training_set: ./datasets/MVSEC/tomo/train_set.pt # Put your own path here.
+  validation_set: ./datasets/MVSEC/tomo/val_set.pt # Put your own path here.
+  test_set: ./datasets/MVSEC/tomo/test_set.pt # Put your own path here.
 
 model:
-  checkpoint: /home/geoffroy/Documents/distilled_q_stereospike/SteroSpike_SQAKD/results/checkpoints/stereospike_seed4064822634.pth
+  checkpoint: /home/geoffroy/Documents/distilled_q_stereospike/SteroSpike_SQAKD/results/checkpoints/stereospike_seed4064822634.pth # Put your own path here.
 
+neuron:
+  use_plif: True
+  tau: 3.0
+  v_threshold: 1.0
+  v_reset: 0.0
+
+sqakd:
+  temperature: 1.0 # Might be interesting to test different values for this parameter, the impact could be quite important.
