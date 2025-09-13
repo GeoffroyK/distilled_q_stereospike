@@ -13,6 +13,10 @@ GitHub: https://github.com/kaiqi123/SQAKD
 # 13th Septermber, 2025
 ### updated by Tomomasa Yamasaki
 
+#### GPU Cluster
+All folder and data in a SUTD GPU cluster
+Please contact Andres or Mohamed If you know the password and address.
+
 #### Background  
 •	StereoSpike: A spiking neural network model for stereo matching.  
 •	SQAKD: “Student-Quantized Adaptive Knowledge Distillation”, a method to enable quantization-aware training with knowledge distillation.  
