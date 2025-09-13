@@ -13,3 +13,6 @@
 ## 2. Pretrained Model Weights
 You can download the pretrained weights of the models for both experiments (QKD, Stereospike) here:
 [Download Pretrained Links](https://drive.google.com/drive/folders/1yG0c-reaNzCwuCU-2aJ4HVLOC9idG5NU)
+
+# Tomomasa's Update (13th Sep 2025)
+Please check the ```StereoSpike_SQAKD``` folder.
