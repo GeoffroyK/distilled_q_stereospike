@@ -6,7 +6,7 @@ from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 from spikingjelly.clock_driven import neuron, layer, surrogate
 
-from .blocks import SEWResBlock, NNConvUpsampling, MultiplyBy, SeparableSEWResBlock, SeparableNNConvUpsampling, SeparableNNConvUpsampling_intermediatespike, SQAKD_SeparableNNConvUpsampling, SQAKD_v2_SeparableNNConvUpsampling
+from .blocks_v100 import SEWResBlock, NNConvUpsampling, MultiplyBy, SeparableSEWResBlock, SeparableNNConvUpsampling, SeparableNNConvUpsampling_intermediatespike, SQAKD_SeparableNNConvUpsampling, SQAKD_v2_SeparableNNConvUpsampling
 #from .blocks_old_quantize import InferenceOnlyHeaviside, QuantizedSeparableSEWResBlock
 #from .blocks import forFLOPSSeparableSEWResBlock, forFLOPSSeparableNNConvUpsampling
 
@@ -3693,14 +3693,14 @@ class SQAKD_QUANTIZABLE_fromZero_feedforward_multiscale_tempo_Matt_NoskipAll_sep
 
 
 
-class SQAKD_v2_QUANTIZABLE_fromZero_feedforward_multiscale_tempo_Matt_NoskipAll_sepConv_SpikeFlowNetLike_v3(NeuromorphicNet):
+class SQAKD_v2_QUANTIZABLE_fromZero_feedforward_multiscale_tempo_Matt_NoskipAll_sepConv_SpikeFlowNetLike_v4(NeuromorphicNet):
     """
     Uses separable convolutions for a lighter model
 
     See this excellent article to know moreabout separable convolutions:
     https://www.paepper.com/blog/posts/depthwise-separable-convolutions-in-pytorch/
     """
-    def __init__(self, input_chans=4, kernel_size=7, base_chans=32, use_plif=False, detach_reset=True, tau=10., v_threshold=1.0, v_reset=0.0, multiply_factor=1., surrogate_function=surrogate.Sigmoid(), learnable_biases=False):
+    def __init__(self, input_chans=4, kernel_size=7, base_chans=32, use_plif=False, detach_reset=True, tau=10., v_threshold=1.0, v_reset=0.0, multiply_factor=1., surrogate_function=surrogate.Sigmoid(), learnable_biases=False, multiply_ratio=[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0]):
         super().__init__(detach_reset=detach_reset)
         
         C = [base_chans * (2**n) for n in range(5)]
@@ -3708,12 +3708,27 @@ class SQAKD_v2_QUANTIZABLE_fromZero_feedforward_multiscale_tempo_Matt_NoskipAll_
         P = (kernel_size - 1) // 2
         self.multiply_factor = multiply_factor
 
+        bottom_multiply_ratio = multiply_ratio[0]
+        conv1_multiply_ratio = multiply_ratio[1]
+        conv2_multiply_ratio = multiply_ratio[2]
+        conv3_multiply_ratio = multiply_ratio[3]
+        conv4_multiply_ratio = multiply_ratio[4]
+        neck_multiply_ratio = multiply_ratio[5]
+        deconv4_multiply_ratio = multiply_ratio[6]
+        deconv3_multiply_ratio = multiply_ratio[7]
+        deconv2_multiply_ratio = multiply_ratio[8]
+        deconv1_multiply_ratio = multiply_ratio[9]
+        pred4_multiply_ratio = multiply_ratio[10]
+        pred3_multiply_ratio = multiply_ratio[11]
+        pred2_multiply_ratio = multiply_ratio[12]
+        pred1_multiply_ratio = multiply_ratio[13]
+
         # bottom layer, preprocessing the input spike frame without downsampling
         self.bottom = nn.Sequential(
             # nn.Conv2d(in_channels=4, out_channels=32, kernel_size=5, stride=1, padding=2, bias=False),
             QConv_DW(in_channels=input_chans, out_channels=input_chans, groups=input_chans, kernel_size=K, stride=1, padding=P, bias=False),
             QConv_PW(in_channels=input_chans, out_channels=C[0], kernel_size=1, stride=1, bias=False),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*bottom_multiply_ratio),
             neuron.ParametricLIFNode(init_tau=tau, v_threshold=v_threshold, v_reset=v_reset, detach_reset=True, surrogate_function=surrogate_function) if use_plif else neuron.LIFNode(tau=tau, v_threshold=v_threshold, v_reset=v_reset, surrogate_function=surrogate.ATan(), detach_reset=True),
         )
 
@@ -3722,56 +3737,58 @@ class SQAKD_v2_QUANTIZABLE_fromZero_feedforward_multiscale_tempo_Matt_NoskipAll_
             # nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, stride=2, padding=2, bias=False),
             QConv_DW(in_channels=C[0], out_channels=C[0], groups=C[0], kernel_size=K, stride=2, padding=P, bias=False),
             QConv_PW(in_channels=C[0], out_channels=C[1], kernel_size=1, stride=1, bias=False),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*conv1_multiply_ratio),
             neuron.ParametricLIFNode(init_tau=tau, v_threshold=v_threshold, v_reset=v_reset, detach_reset=True, surrogate_function=surrogate_function) if use_plif else neuron.LIFNode(tau=tau, v_threshold=v_threshold, v_reset=v_reset, surrogate_function=surrogate.ATan(), detach_reset=True),
         )
         self.conv2 = nn.Sequential(
             # nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5, stride=2, padding=2, bias=False),
             QConv_DW(in_channels=C[1], out_channels=C[1], groups=C[1], kernel_size=K, stride=2, padding=P, bias=False),
             QConv_PW(in_channels=C[1], out_channels=C[2], kernel_size=1, stride=1, bias=False),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*conv2_multiply_ratio),
             neuron.ParametricLIFNode(init_tau=tau, v_threshold=v_threshold, v_reset=v_reset, detach_reset=True, surrogate_function=surrogate_function) if use_plif else neuron.LIFNode(tau=tau, v_threshold=v_threshold, v_reset=v_reset, surrogate_function=surrogate.ATan(), detach_reset=True),
         )
         self.conv3 = nn.Sequential(
             # nn.Conv2d(in_channels=128, out_channels=256, kernel_size=5, stride=2, padding=2, bias=False),
             QConv_DW(in_channels=C[2], out_channels=C[2], groups=C[2], kernel_size=K, stride=2, padding=P, bias=False),
             QConv_PW(in_channels=C[2], out_channels=C[3], kernel_size=1, stride=1, bias=False),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*conv3_multiply_ratio),
             neuron.ParametricLIFNode(init_tau=tau, v_threshold=v_threshold, v_reset=v_reset, detach_reset=True, surrogate_function=surrogate_function) if use_plif else neuron.LIFNode(tau=tau, v_threshold=v_threshold, v_reset=v_reset, surrogate_function=surrogate.ATan(), detach_reset=True),
         )
         self.conv4 = nn.Sequential(
             # nn.Conv2d(in_channels=256, out_channels=512, kernel_size=5, stride=2, padding=2, bias=False),
             QConv_DW(in_channels=C[3], out_channels=C[3], groups=C[3], kernel_size=K, stride=2, padding=P, bias=False),
             QConv_PW(in_channels=C[3], out_channels=C[4], kernel_size=1, stride=1, bias=False),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*conv4_multiply_ratio),
             neuron.ParametricLIFNode(init_tau=tau, v_threshold=v_threshold, v_reset=v_reset, detach_reset=True, surrogate_function=surrogate_function) if use_plif else neuron.LIFNode(tau=tau, v_threshold=v_threshold, v_reset=v_reset, surrogate_function=surrogate.ATan(), detach_reset=True),
         )
 
         # residual layers
         self.bottleneck = nn.Sequential(
-            SQAKD_v2_QANTIZED_SeparableSEWResBlock_Noskip(C[4], kernel_size=K, v_threshold=v_threshold, v_reset=v_reset, connect_function='ADD', multiply_factor=multiply_factor, use_plif=True, tau=tau, surrogate_function=surrogate_function),
-            SQAKD_v2_QANTIZED_SeparableSEWResBlock_Noskip(C[4], kernel_size=K, v_threshold=v_threshold, v_reset=v_reset, connect_function='ADD', multiply_factor=multiply_factor, use_plif=True, tau=tau, surrogate_function=surrogate_function),
+            SQAKD_v2_QANTIZED_SeparableSEWResBlock_Noskip(C[4], kernel_size=K, v_threshold=v_threshold, v_reset=v_reset, connect_function='ADD', multiply_factor=multiply_factor*neck_multiply_ratio, use_plif=True, tau=tau, surrogate_function=surrogate_function),
+            SQAKD_v2_QANTIZED_SeparableSEWResBlock_Noskip(C[4], kernel_size=K, v_threshold=v_threshold, v_reset=v_reset, connect_function='ADD', multiply_factor=multiply_factor*neck_multiply_ratio, use_plif=True, tau=tau, surrogate_function=surrogate_function),
         )
+
+        self.res_multi = MultiplyBy(multiply_factor*deconv4_multiply_ratio)
 
         # decoder layers (upsampling)
         self.deconv4 = nn.Sequential(
             SQAKD_v2_SeparableNNConvUpsampling(in_channels=C[4], out_channels=C[3], kernel_size=K, up_size=(33, 44)),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*deconv4_multiply_ratio),
             neuron.ParametricLIFNode(init_tau=tau, v_threshold=v_threshold, v_reset=v_reset, detach_reset=True, surrogate_function=surrogate_function) if use_plif else neuron.LIFNode(tau=tau, v_threshold=v_threshold, v_reset=v_reset, surrogate_function=surrogate.ATan(), detach_reset=True),
         )
         self.deconv3 = nn.Sequential(
             SQAKD_v2_SeparableNNConvUpsampling(in_channels=C[3], out_channels=C[2], kernel_size=K, up_size=(65, 87)),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*deconv3_multiply_ratio),
             neuron.ParametricLIFNode(init_tau=tau, v_threshold=v_threshold, v_reset=v_reset, detach_reset=True, surrogate_function=surrogate_function) if use_plif else neuron.LIFNode(tau=tau, v_threshold=v_threshold, v_reset=v_reset, surrogate_function=surrogate.ATan(), detach_reset=True),
         )
         self.deconv2 = nn.Sequential(
             SQAKD_v2_SeparableNNConvUpsampling(in_channels=C[2], out_channels=C[1], kernel_size=K, up_size=(130, 173)),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*deconv2_multiply_ratio),
             neuron.ParametricLIFNode(init_tau=tau, v_threshold=v_threshold, v_reset=v_reset, detach_reset=True, surrogate_function=surrogate_function) if use_plif else neuron.LIFNode(tau=tau, v_threshold=v_threshold, v_reset=v_reset, surrogate_function=surrogate.ATan(), detach_reset=True),
         )
         self.deconv1 = nn.Sequential(
             SQAKD_v2_SeparableNNConvUpsampling(in_channels=C[1], out_channels=C[0], kernel_size=K, up_size=(260, 346)),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*deconv1_multiply_ratio),
             neuron.ParametricLIFNode(init_tau=tau, v_threshold=v_threshold, v_reset=v_reset, detach_reset=True, surrogate_function=surrogate_function) if use_plif else neuron.LIFNode(tau=tau, v_threshold=v_threshold, v_reset=v_reset, surrogate_function=surrogate.ATan(), detach_reset=True),
         )
 
@@ -3779,19 +3796,19 @@ class SQAKD_v2_QUANTIZABLE_fromZero_feedforward_multiscale_tempo_Matt_NoskipAll_
         # that do not fire ("I-neurons"), i.e., with an infinite threshold.
         self.predict_depth4 = nn.Sequential(
             SQAKD_v2_SeparableNNConvUpsampling(in_channels=C[3], out_channels=1, kernel_size=K, up_size=(260, 346), bias=True),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*pred4_multiply_ratio),
         )
         self.predict_depth3 = nn.Sequential(
             SQAKD_v2_SeparableNNConvUpsampling(in_channels=C[2], out_channels=1, kernel_size=K, up_size=(260, 346), bias=True),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*pred3_multiply_ratio),
         )
         self.predict_depth2 = nn.Sequential(
             SQAKD_v2_SeparableNNConvUpsampling(in_channels=C[1], out_channels=1, kernel_size=K, up_size=(260, 346), bias=True),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*pred2_multiply_ratio),
         )
         self.predict_depth1 = nn.Sequential(
             SQAKD_v2_SeparableNNConvUpsampling(in_channels=C[0], out_channels=1, kernel_size=K, up_size=(260, 346), bias=True),
-            MultiplyBy(multiply_factor),
+            MultiplyBy(multiply_factor*pred1_multiply_ratio),
         )
 
         # learn the reset potentials of output I-neurons
@@ -3855,38 +3872,56 @@ class SQAKD_v2_QUANTIZABLE_fromZero_feedforward_multiscale_tempo_Matt_NoskipAll_
 
         # data is fed in through the bottom layer
         out_bottom = self.bottom(frame)
+        print(f"[forward] Qweight: mean={out_bottom.mean().item():.6f}, std={out_bottom.std().item():.6f}, min={out_bottom.min().item():.6f}, max={out_bottom.max().item():.6f}")
 
         # pass through encoder layers
         out_conv1 = self.conv1(out_bottom)
+        print(f"[forward] out_conv1: mean={out_conv1.mean().item():.6f}, std={out_conv1.std().item():.6f}, min={out_conv1.min().item():.6f}, max={out_conv1.max().item():.6f}")
         out_conv2 = self.conv2(out_conv1)
+        print(f"[forward] out_conv2: mean={out_conv2.mean().item():.6f}, std={out_conv2.std().item():.6f}, min={out_conv2.min().item():.6f}, max={out_conv2.max().item():.6f}")
         out_conv3 = self.conv3(out_conv2)
+        print(f"[forward] out_conv3: mean={out_conv3.mean().item():.6f}, std={out_conv3.std().item():.6f}, min={out_conv3.min().item():.6f}, max={out_conv3.max().item():.6f}")
         out_conv4 = self.conv4(out_conv3)
+        print(f"[forward] out_conv4: mean={out_conv4.mean().item():.6f}, std={out_conv4.std().item():.6f}, min={out_conv4.min().item():.6f}, max={out_conv4.max().item():.6f}")
 
         # pass through residual blocks
+        print()
         out_rconv = self.bottleneck(out_conv4)
+        print(f"[forward] out_rconv: mean={out_rconv.mean().item():.6f}, std={out_rconv.std().item():.6f}, min={out_rconv.min().item():.6f}, max={out_rconv.max().item():.6f}")
+        
+        #out_rconv=self.res_multi(out_rconv)
 
         # gradually upsample while concatenating and passing through skip connections
+        print()
         out_deconv4 = self.deconv4(out_rconv)
+        print(f"[forward] out_deconv4: mean={out_deconv4.mean().item():.6f}, std={out_deconv4.std().item():.6f}, min={out_deconv4.min().item():.6f}, max={out_deconv4.max().item():.6f}")
         out_add4 = out_deconv4 #+ out_conv3
         depth4 = self.predict_depth4(out_add4) # * self.multiply_factor
+        print(f"[forward] depth4: mean={depth4.mean().item():.6f}, std={depth4.std().item():.6f}, min={depth4.min().item():.6f}, max={depth4.max().item():.6f}")
         #self.Ineurons(self.predict_depth4(out_add4) * self.multiply_factor)
         #depth4 = self.Ineurons.v
 
         out_deconv3 = self.deconv3(out_add4)
+        print(f"[forward] out_deconv3: mean={out_deconv3.mean().item():.6f}, std={out_deconv3.std().item():.6f}, min={out_deconv3.min().item():.6f}, max={out_deconv3.max().item():.6f}")
         out_add3 = out_deconv3 #+ out_conv2
         depth3 = depth4 + self.predict_depth3(out_add3) # * self.multiply_factor
+        print(f"[forward] depth3: mean={depth3.mean().item():.6f}, std={depth3.std().item():.6f}, min={depth3.min().item():.6f}, max={depth3.max().item():.6f}")
         #self.Ineurons(self.predict_depth3(out_add3) * self.multiply_factor)
         #depth3 = self.Ineurons.v
 
         out_deconv2 = self.deconv2(out_add3)
+        print(f"[forward] out_deconv2: mean={out_deconv2.mean().item():.6f}, std={out_deconv2.std().item():.6f}, min={out_deconv2.min().item():.6f}, max={out_deconv2.max().item():.6f}")
         out_add2 = out_deconv2 #+ out_conv1
         depth2  = depth3 + self.predict_depth2(out_add2) # * self.multiply_factor
+        print(f"[forward] depth2: mean={depth2.mean().item():.6f}, std={depth2.std().item():.6f}, min={depth2.min().item():.6f}, max={depth2.max().item():.6f}")
         #self.Ineurons(self.predict_depth2(out_add2) * self.multiply_factor)
         #depth2 = self.Ineurons.v
 
         out_deconv1 = self.deconv1(out_add2)
+        print(f"[forward] out_deconv1: mean={out_deconv1.mean().item():.6f}, std={out_deconv1.std().item():.6f}, min={out_deconv1.min().item():.6f}, max={out_deconv1.max().item():.6f}")
         out_add1 = out_deconv1 #+ out_bottom
         depth1 = depth2 + self.predict_depth1(out_add1) # * self.multiply_factor
+        print(f"[forward] depth1: mean={depth1.mean().item():.6f}, std={depth1.std().item():.6f}, min={depth1.min().item():.6f}, max={depth1.max().item():.6f}")
         #self.Ineurons(self.predict_depth1(out_add1) * self.multiply_factor)
         #depth1 = self.Ineurons.v
 

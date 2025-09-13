@@ -240,160 +240,85 @@ class QConv(nn.Conv2d):
 class QConv_DW(nn.Conv2d):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True):
         super(QConv_DW, self).__init__(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-        self.quan_weight = True #args.QWeightFlag
-        self.quan_act = True #args.QActFlag
-        self.baseline = False #args.baseline
-        self.STE_discretizer = STE_discretizer.apply
-        self.EWGS_discretizer = EWGS_discretizer.apply
-        self.layer_name = None # for save layer_name, can be removed
-
-        if self.quan_weight:
-            self.weight_levels = 256 #args.weight_levels
-            self.uW = nn.Parameter(data = torch.tensor(0).float())
-            self.lW = nn.Parameter(data = torch.tensor(0).float())
-            #self.register_buffer('bkwd_scaling_factorW', torch.tensor(args.bkwd_scaling_factorW).float())
-            self.register_buffer('bkwd_scaling_factorW', torch.tensor(0.0).float())
-
-
-        if self.quan_act:
-            self.act_levels = 256 #args.act_levels
-            self.uA = nn.Parameter(data = torch.tensor(0).float()) # change original: 0
-            self.lA = nn.Parameter(data = torch.tensor(0).float())
-            #self.register_buffer('bkwd_scaling_factorA', torch.tensor(args.bkwd_scaling_factorA).float())
-            self.register_buffer('bkwd_scaling_factorA', torch.tensor(0.0).float())
-
-            self.uA_t = nn.Parameter(data = torch.tensor(0).float()) # change original: 0
-            self.lA_t = nn.Parameter(data = torch.tensor(0).float())
-
+        
+        # Quantization flags
+        self.quan_weight = True
+        self.quan_act = True
+        
+        # Weight range
+        self.uW = nn.Parameter(torch.tensor(1.0))
+        self.lW = nn.Parameter(torch.tensor(0.0))
+        
+        # Activation range
+        self.uA = nn.Parameter(torch.tensor(1.0))
+        self.lA = nn.Parameter(torch.tensor(0.0))
+        
+        # Output scaling factor
+        self.output_scale = nn.Parameter(torch.tensor(1.0))
+        
         # Initialization flag (boolean)
         self.init = True
-        #self.register_buffer('init', torch.tensor([0]))
-        self.output_scale = nn.Parameter(data = torch.tensor(1).float())
+
+    def weight_quantization(self, weight):
+        # Normalize weights to [0,1] and then rescale to [-1,1]
+        weight_norm = (weight - self.lW) / (self.uW - self.lW + 1e-6)
+        weight_norm = torch.clamp(weight_norm, 0.0, 1.0)
+
+        if torch.isnan(weight_norm).any():
+            print("[weight_quantization] Warning: NaN detected after normalization")
+            print(f"[weight_quantization] weight before: {weight}")
         
-        self.hook_Qvalues = False
-        self.buff_weight = None
-        self.buff_act = None
+        weight_q = (weight_norm - 0.5) * 2.0
 
-
-
-    def weight_quantization(self, weight, save_dict=None, lambda_dict=None, p=1):
-
-        weight = (weight - self.lW) / (self.uW - self.lW)
-        weight = weight.clamp(min=0, max=1) # [0, 1]
-
-        if not self.baseline:
-            if save_dict:
-                save_dict["type"] = "weight"
-            weight = self.EWGS_discretizer(weight, self.weight_levels, self.bkwd_scaling_factorW, save_dict, None, None)
-        else:
-            weight = self.STE_discretizer(weight, self.weight_levels)
-            
-        if self.hook_Qvalues:
-            self.buff_weight = weight
-            self.buff_weight.retain_grad()
+        if torch.isnan(weight_q).any():
+            print("[weight_quantization] Warning: NaN detected after rescaling")
         
-        weight = (weight - 0.5) * 2
+        return weight_q
 
-
-        return weight
-
-    def act_quantization(self, x, save_dict=None, lambda_dict=None, p=1):
-        x = (x - self.lA) / (self.uA - self.lA)
-        x = x.clamp(min=0, max=1) # [0, 1]
-        
-        if not self.baseline:
-            if save_dict:
-                save_dict["type"] = "activ"
-            x = self.EWGS_discretizer(x, self.act_levels, self.bkwd_scaling_factorA, save_dict, None, None)
-        else:
-            x = self.STE_discretizer(x, self.act_levels)
-
-        if self.hook_Qvalues:
-            self.buff_act = x
-            self.buff_act.retain_grad()
-
-        return x
-
+    def act_quantization(self, x):
+        x_norm = (x - self.lA) / (self.uA - self.lA + 1e-6)
+        x_norm = torch.clamp(x_norm, 0.0, 1.0)
+        return x_norm
 
     def initialize(self, x):
+        Qweight = self.weight_quantization(self.weight)
+        Qact = self.act_quantization(x)
 
-        Qweight = self.weight
-        Qact = x
-        
-        if self.quan_weight:
-            self.uW.data.fill_(self.weight.std()*3.0)
-            self.lW.data.fill_(-self.weight.std()*3.0)
-            Qweight = self.weight_quantization(self.weight)
+        Qout = F.conv2d(Qact, Qweight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        out = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
 
-        if self.quan_act:
-            ###########################
-            # StereoSpike for 1 bits input
-            ###########################
-            self.lA.data.fill_(0.0)
-            self.uA.data.fill_(1.0)
-            Qact = self.act_quantization(x)
+        # Prevent division by zero
+        scale = Qout.abs().mean()
+        if scale < 1e-6:
+            scale = 1e-6
+        self.output_scale.data.fill_(out.abs().mean() / scale)
 
-            self.lA_t.data.fill_(0.0)
-            self.uA_t.data.fill_(1.0)
+        if torch.isnan(self.output_scale).any():
+            print("[initialize] Warning: NaN detected in output_scale")
 
-            ###########################
-            # Original for 32 bits input
-            ###########################
-            """
-            std_x = x.std() # test
-            min_x = x.min() # test
-
-            # test
-            if std_x < 1e-5:
-                std_x = 1e-5
-
-            self.uA.data.fill_(x.std() / math.sqrt(1 - 2/math.pi) * 3.0)
-            self.lA.data.fill_(x.min())
-
-            # test
-            if (self.uA - self.lA).abs() < 1e-5:
-                self.uA.data.fill_(self.lA.item() + 1e-5)
-
-            Qact = self.act_quantization(x)
-            
-            self.uA_t.data.fill_(x.std() / math.sqrt(1 - 2/math.pi) * 3.0)
-            self.lA_t.data.fill_(x.min())
-            """
-
-        Qout = F.conv2d(Qact, Qweight, self.bias,  self.stride, self.padding, self.dilation, self.groups)
-        out = F.conv2d(x, self.weight, self.bias,  self.stride, self.padding, self.dilation, self.groups)
-        self.output_scale.data.fill_(out.abs().mean() / Qout.abs().mean())
-
-
-    def forward(self, x, save_dict=None, lambda_dict=None):
-        # for p, can be removed
-        p = 1
-
-        # for saving layer_name, can be removed
-        if save_dict:
-            layer_num = save_dict["layer_num"]
-            block_num = save_dict["block_num"]
-            conv_num = save_dict["conv_num"]
-            self.layer_name = f"layer{layer_num}.block{block_num}.conv{conv_num}"
-
-
+    def forward(self, x):
         if self.init:
             self.initialize(x)
             self.init = False
+
+        Qweight = self.weight_quantization(self.weight) if self.quan_weight else self.weight
+        Qact = self.act_quantization(x) if self.quan_act else x
         
-        Qweight = self.weight
-        if self.quan_weight:
-            Qweight = self.weight_quantization(Qweight, save_dict, lambda_dict, p)
-    
+        # Debug info
+        print(f"[forward] Input x: mean={x.mean().item():.6f}, std={x.std().item():.6f}")
+        print(f"[forward] Qweight: mean={Qweight.mean().item():.6f}, std={Qweight.std().item():.6f}, min={Qweight.min().item():.6f}, max={Qweight.max().item():.6f}")
+        print(f"[forward] Qact: mean={Qact.mean().item():.6f}, std={Qact.std().item():.6f}, min={Qact.min().item():.6f}, max={Qact.max().item():.6f}")
 
-        Qact = x
-        if self.quan_act:
-            Qact = self.act_quantization(Qact, save_dict, lambda_dict, p)
+        output = F.conv2d(Qact, Qweight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        output = output * self.output_scale
 
-        output = F.conv2d(Qact, Qweight, self.bias,  self.stride, self.padding, self.dilation, self.groups) * torch.abs(self.output_scale)
+        if torch.isnan(output).any():
+            print("[forward] Warning: NaN detected in output!")
+
+        if output.abs().sum() == 0:
+            print("[forward] Still all-zero output after conv")
 
         return output
-    
 
     
 class QConv_PW(nn.Conv2d):
@@ -408,22 +333,21 @@ class QConv_PW(nn.Conv2d):
 
         if self.quan_weight:
             self.weight_levels = 256 #args.weight_levels
-            self.uW = nn.Parameter(data = torch.tensor(0).float())
+            self.uW = nn.Parameter(data = torch.tensor(1).float())
             self.lW = nn.Parameter(data = torch.tensor(0).float())
             self.register_buffer('bkwd_scaling_factorW', torch.tensor(0.0).float())
+            
 
 
         if self.quan_act:
             self.act_levels = 256 #args.act_levels
-            self.uA = nn.Parameter(data = torch.tensor(0).float())
+            self.uA = nn.Parameter(data = torch.tensor(1).float())
             self.lA = nn.Parameter(data = torch.tensor(0).float())
             self.register_buffer('bkwd_scaling_factorA', torch.tensor(0.0).float())
 
-            self.uA_t = nn.Parameter(data = torch.tensor(0).float())
+            self.uA_t = nn.Parameter(data = torch.tensor(1).float())
             self.lA_t = nn.Parameter(data = torch.tensor(0).float())
 
-        #self.register_buffer('init', torch.tensor([0]))
-        # Initialization flag (boolean)
         self.init = True
         self.output_scale = nn.Parameter(data = torch.tensor(1).float())
         
@@ -433,42 +357,17 @@ class QConv_PW(nn.Conv2d):
 
 
 
-    def weight_quantization(self, weight, save_dict=None, lambda_dict=None, p=1):
-
-        weight = (weight - self.lW) / (self.uW - self.lW)
-        weight = weight.clamp(min=0, max=1) # [0, 1]
-
-        if not self.baseline:
-            if save_dict:
-                save_dict["type"] = "weight"
-            weight = self.EWGS_discretizer(weight, self.weight_levels, self.bkwd_scaling_factorW, save_dict, None, None)
-        else:
-            weight = self.STE_discretizer(weight, self.weight_levels)
-            
-        if self.hook_Qvalues:
-            self.buff_weight = weight
-            self.buff_weight.retain_grad()
-        
+    def weight_quantization(self, weight):
+        # Normalize weights to [0, 1], then rescale to [-1, 1]
+        weight = (weight - self.lW) / (self.uW - self.lW + 1e-6)
+        weight = weight.clamp(0, 1)
         weight = (weight - 0.5) * 2
-
-
         return weight
 
-    def act_quantization(self, x, save_dict=None, lambda_dict=None, p=1):
-        x = (x - self.lA) / (self.uA - self.lA)
-        x = x.clamp(min=0, max=1) # [0, 1]
-        
-        if not self.baseline:
-            if save_dict:
-                save_dict["type"] = "activ"
-            x = self.EWGS_discretizer(x, self.act_levels, self.bkwd_scaling_factorA, save_dict, None, None)
-        else:
-            x = self.STE_discretizer(x, self.act_levels)
-
-        if self.hook_Qvalues:
-            self.buff_act = x
-            self.buff_act.retain_grad()
-
+    def act_quantization(self, x):
+        # Normalize activations to [0, 1]
+        x = (x - self.lA) / (self.uA - self.lA + 1e-6)
+        x = x.clamp(0, 1)
         return x
 
 
@@ -506,18 +405,18 @@ class QConv_PW(nn.Conv2d):
             conv_num = save_dict["conv_num"]
             self.layer_name = f"layer{layer_num}.block{block_num}.conv{conv_num}"
 
-        if self.init:
+        if self.init == 1:
             self.initialize(x)
             self.init = False
         
         Qweight = self.weight
         if self.quan_weight:
-            Qweight = self.weight_quantization(Qweight, save_dict, lambda_dict, p)
+            Qweight = self.weight_quantization(Qweight)
     
 
         Qact = x
         if self.quan_act:
-            Qact = self.act_quantization(Qact, save_dict, lambda_dict, p)
+            Qact = self.act_quantization(Qact)
 
 
         output = F.conv2d(Qact, Qweight, self.bias,  self.stride, self.padding, self.dilation, self.groups) * torch.abs(self.output_scale)
